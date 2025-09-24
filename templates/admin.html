@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Override Panel</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <style>
+        body { font-family: sans-serif; margin: 0; }
+        #map { height: 60vh; }
+        .container { padding: 20px; }
+        form { margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Admin Geofence Override</h1>
+    <p>Use the polygon tool on the map to draw an area to override.</p>
+    <div id="map"></div>
+    <form action="/add_override" method="post" id="overrideForm">
+        <input type="hidden" name="geojson_data" id="geojson_data">
+        <br>
+        <label for="risk_level"><b>Set Risk Level:</b></label>
+        <select name="risk_level" id="risk_level">
+            <option value="2">Red (High Danger)</option>
+            <option value="1">Orange (Caution)</option>
+            <option value="0">Green (Safe)</option>
+        </select>
+        <br><br>
+        <label for="duration_hours"><b>Duration (in hours):</b></label>
+        <input type="number" name="duration_hours" id="duration_hours" value="24" step="0.5">
+        <br><br>
+        <button type="submit">Submit Override</button>
+    </form>
+</div>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+    var map = L.map('map').setView([26.2006, 92.9376], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    var drawControl = new L.Control.Draw({
+        edit: { featureGroup: drawnItems },
+        draw: {
+            polygon: true, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
+        }
+    });
+    map.addControl(drawControl);
+    map.on(L.Draw.Event.CREATED, function (event) {
+        var layer = event.layer;
+        drawnItems.clearLayers();
+        drawnItems.addLayer(layer);
+        var geoJSON = layer.toGeoJSON();
+        document.getElementById('geojson_data').value = JSON.stringify(geoJSON.geometry);
+    });
+</script>
+</body>
+</html>

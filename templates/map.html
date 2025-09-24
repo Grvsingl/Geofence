@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tourist Safety Map - Assam</title>
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 8,
+                center: { lat: 26.2006, lng: 92.9376 },
+                mapTypeId: "terrain",
+            });
+
+            map.data.setStyle({
+                fillColor: 'transparent',
+                strokeWeight: 2,
+                strokeColor: 'black'
+            });
+
+            map.data.loadGeoJson('/static/assam_boundary.json');
+            
+            const zoneColors = { 0: 'green', 1: 'orange', 2: 'red' };
+
+            fetch('/get_risk_data')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(point => {
+                        new google.maps.Circle({
+                            strokeWeight: 0,
+                            fillColor: zoneColors[point.zone],
+                            fillOpacity: 0.35,
+                            map,
+                            center: { lat: point.latitude, lng: point.longitude },
+                            radius: 4000,
+                        });
+                    });
+                });
+        }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJB7FhnT41Fv013aOrzsJzf39ui83i2k&callback=initMap">
+    </script>
+</body>
+</html>
